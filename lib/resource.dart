@@ -6,6 +6,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
+const MAX_FILE_SIZE_IN_BYTES = 1000000;
+
 class Resource {
   final String uri;
   final Duration duration;
@@ -17,8 +19,7 @@ class Resource {
   Uri _remote;
   Duration _retry;
 
-  Resource(
-      this.uri, this.duration, this.durationMultiplier, this.durationExpiration)
+  Resource(this.uri, this.duration, this.durationMultiplier, this.durationExpiration)
       : assert(uri != null),
         _retry = duration;
 
@@ -39,7 +40,6 @@ class Resource {
     _temp = await _getTempDir();
     _remote = _parse(uri);
     _local = _parse(_temp.path + '/' + _remote.hashCode.toString());
-
     return this;
   }
 
@@ -63,23 +63,26 @@ class Resource {
     File file = await File(_local.path).create(recursive: true);
     // Check FireStorage scheme
     if (_remote.scheme == 'gs') {
-      final StorageReference ref =
-          FirebaseStorage.instance.ref().child(_remote.path);
-      final dynamic url = await ref.getDownloadURL();
-      _remote = Uri.parse(url);
+//      final StorageReference ref = FirebaseStorage.instance.ref().child(_remote.path);
+//      final dynamic url = await ref.getDownloadURL();
+//      _remote = Uri.parse(url);
     }
     // Download file with retry
     while (file.lengthSync() <= 0) {
       await Future.delayed(_retry).then((_) async {
         try {
-          HttpClient httpClient = new HttpClient();
+          StorageReference fileReference = FirebaseStorage().ref().child(_remote.path);
+          Uint8List bytes = await fileReference.getData(MAX_FILE_SIZE_IN_BYTES);
+
+          /*HttpClient httpClient = new HttpClient();
           final HttpClientRequest request = await httpClient.getUrl(_remote);
           final HttpClientResponse response = await request.close();
           final Uint8List bytes = await consolidateHttpClientResponseBytes(
               response,
-              autoUncompress: false);
+              autoUncompress: false);*/
           file = await file.writeAsBytes(bytes);
         } catch (err) {
+          print(err);
           _retry += _retry * this.durationMultiplier;
         }
       });

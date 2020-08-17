@@ -7,7 +7,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:cache_image/resource.dart';
-
 /*
  *  ImageCache for Flutter
  *
@@ -26,8 +25,7 @@ class CacheImage extends ImageProvider<CacheImage> {
     this.durationMultiplier = 1.5,
     this.durationExpiration = const Duration(seconds: 10),
   })  : assert(url != null),
-        _resource =
-            Resource(url, duration, durationMultiplier, durationExpiration);
+        _resource = Resource(url, duration, durationMultiplier, durationExpiration);
 
   /// The scale to place in the [ImageInfo] object of the image.
   final double scale;
@@ -72,8 +70,7 @@ class CacheImage extends ImageProvider<CacheImage> {
         codec: key._fetchImage(),
         scale: key.scale,
         informationCollector: () sync* {
-          yield DiagnosticsProperty<ImageProvider>(
-              'Image provider: $this \n Image key: $key', this,
+          yield DiagnosticsProperty<ImageProvider>('Image provider: $this \n Image key: $key', this,
               style: DiagnosticsTreeStyle.errorProperty);
         });
   }
